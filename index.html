@@ -1,0 +1,894 @@
+gafurov's, [05.02.2026 22:49]
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>gafurov's anime • Demo Premium</title>
+  <meta name="theme-color" content="#07070d"/>
+
+  <style>
+    :root{
+      --bg:#07070d;
+      --panel: rgba(18, 18, 28, .72);
+      --panel2: rgba(26, 26, 40, .76);
+      --stroke: rgba(255,255,255,.10);
+      --text:#e9e9f3;
+      --muted: rgba(233,233,243,.70);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --accent:#ff40a0;
+      --accent2:#5a9bff;
+      --good:#5dff9a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* Live wallpaper (animated gradient layers) */
+    .live-bg{
+      position:fixed; inset:-20vh -20vw; z-index:-3;
+      background:
+        radial-gradient(900px 700px at 20% 15%, rgba(255,64,160,.18), transparent 60%),
+        radial-gradient(900px 700px at 85% 20%, rgba(90,155,255,.16), transparent 55%),
+        radial-gradient(800px 600px at 40% 95%, rgba(93,255,154,.10), transparent 60%),
+        linear-gradient(120deg, rgba(255,64,160,.08), rgba(90,155,255,.06), rgba(93,255,154,.05));
+      filter: blur(0px);
+      animation: bgShift 14s ease-in-out infinite;
+    }
+    @keyframes bgShift{
+      0%,100%{transform: translate3d(0,0,0) scale(1)}
+      50%{transform: translate3d(3vw,-2vh,0) scale(1.05)}
+    }
+
+    /* Stars canvas */
+    #stars{
+      position:fixed; inset:0; z-index:-2;
+      width:100vw; height:100vh;
+      opacity:.75;
+      pointer-events:none;
+    }
+
+    /* subtle moving noise */
+    .noise{
+      position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.25;
+      animation: noiseMove 6s linear infinite;
+    }
+    @keyframes noiseMove{
+      0%{transform: translate3d(0,0,0)}
+      100%{transform: translate3d(-4%,3%,0)}
+    }
+
+    /* Splash intro */
+    .splash{
+      position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+      background: radial-gradient(900px 700px at 50% 40%, rgba(255,64,160,.22), transparent 55%),
+                  radial-gradient(900px 700px at 55% 55%, rgba(90,155,255,.18), transparent 55%), #000;
+      animation: splashOut 2.9s ease forwards;
+    }
+    @keyframes splashOut{0%{opacity:1} 72%{opacity:1} 100%{opacity:0; visibility:hidden}}
+    .splash-card{
+      text-align:center; padding:28px 34px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,10,16,.55);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      transform: translateY(12px) scale(.98);
+      animation: pop 1.1s cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    @keyframes pop{from{transform: translateY(22px) scale(.98); opacity:0} to{transform: translateY(0) scale(1); opacity:1}}
+    .brand{font-weight:950; letter-spacing:.18em; font-size:14px; text-transform:uppercase; color: rgba(233,233,243,.78);}
+    .logo{
+      margin:10px 0 6px;
+      font-weight:1000;
+      font-size:44px;
+      background: linear-gradient(90deg, #fff, rgba(255,64,160,.95), rgba(90,155,255,.95), #fff);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 0 28px rgba(255,64,160,.20);
+    }
+    .tag{margin:0; color: rgba(233,233,243,.78); font-size:14px;}
+
+gafurov's, [05.02.2026 22:49]
+/* layout */
+    .wrap{max-width:1200px; margin:0 auto; padding:18px 16px 88px}
+    header{
+      position:sticky; top:0; z-index:20; padding:14px 0 10px;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(to bottom, rgba(7,7,13,.70), rgba(7,7,13,.10));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .topbar{display:flex; align-items:center; gap:12px; justify-content:space-between;}
+    .title{display:flex; align-items:center; gap:10px; min-width:260px;}
+    .title .mark{width:38px; height:38px; border-radius:14px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.22), transparent 50%),
+                  linear-gradient(135deg, rgba(255,64,160,.90), rgba(90,155,255,.90));
+      box-shadow:0 10px 30px rgba(255,64,160,.18); border:1px solid rgba(255,255,255,.12);
+    }
+    .title h1{margin:0; font-size:16px; letter-spacing:.08em; text-transform:lowercase;}
+    .title small{display:block; margin-top:2px; color: var(--muted); font-weight:650; font-size:12px;}
+
+    .controls{display:flex; align-items:center; gap:10px; flex:1; justify-content:center; max-width:720px;}
+    .search-wrap{position:relative; flex:1; min-width:280px;}
+    .search{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55); backdrop-filter: blur(10px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    }
+    .search input{width:100%; border:none; outline:none; background:transparent; color:var(--text); font-size:14px;}
+    .suggest{
+      position:absolute; top:54px; left:0; right:0;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(14,14,22,.92);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:none;
+      z-index:30;
+    }
+    .suggest.show{display:block;}
+    .suggest-item{
+      padding:10px 12px;
+      display:flex; gap:10px; align-items:center;
+      cursor:pointer;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .suggest-item:first-child{border-top:none;}
+    .suggest-item:hover, .suggest-item.active{background: rgba(255,255,255,.06);}
+    .suggest-item img{width:34px; height:48px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,.10);}
+    .suggest-item .s-title{font-weight:950; font-size:13px;}
+    .suggest-item .s-sub{font-size:12px; color: var(--muted); font-weight:700; margin-top:2px;}
+
+    .pill{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55);
+      color: rgba(233,233,243,.92);
+      padding:10px 12px; border-radius:999px;
+      cursor:pointer; transition:.25s; user-select:none;
+      font-weight:900;
+    }
+    .pill:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18)}
+    .pill.active{
+      background: linear-gradient(135deg, rgba(255,64,160,.30), rgba(90,155,255,.22));
+      border-color: rgba(255,64,160,.35);
+      box-shadow: 0 18px 50px rgba(255,64,160,.10);
+    }
+
+    .right{display:flex; align-items:center; gap:10px; min-width:320px; justify-content:flex-end;}
+    .btn{
+      padding:10px 12px; border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55);
+      backdrop-filter: blur(10px);
+      color: rgba(233,233,243,.95);
+      cursor:pointer; transition:.25s; font-weight:1000;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.18)}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(255,64,160,.65), rgba(90,155,255,.45));
+      border-color: rgba(255,64,160,.35);
+    }
+    .btn.good{
+      background: linear-gradient(135deg, rgba(93,255,154,.35), rgba(90,155,255,.20));
+      border-color: rgba(93,255,154,.35);
+    }
+    .btn.bad{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.10);
+      opacity:.75;
+    }
+    .btn.bad[disabled]{cursor:not-allowed}
+
+gafurov's, [05.02.2026 22:49]
+.meta-row{display:flex; justify-content:space-between; align-items:flex-end; margin:18px 0 10px; gap:12px;}
+    .meta-row .hint{color: var(--muted); font-weight:650; font-size:13px}
+    .meta-row .stat{color: rgba(233,233,243,.86); font-weight:1000; font-size:13px}
+
+    .grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:14px;}
+    .card{
+      position:relative; border-radius: var(--radius); overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55);
+      box-shadow: 0 16px 55px rgba(0,0,0,.30);
+      cursor:pointer; transition:.25s; transform: translateZ(0);
+    }
+    .card:hover{transform: translateY(-4px); border-color: rgba(255,255,255,.18); box-shadow: 0 22px 70px rgba(0,0,0,.45);}
+    .poster{width:100%; height:270px; object-fit:cover; display:block; filter:saturate(1.05) contrast(1.05);}
+    .fade{position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,.75), transparent 62%); pointer-events:none;}
+    .info{position:absolute; left:0; right:0; bottom:0; padding:12px;}
+    .name{margin:0; font-weight:1000; font-size:13px; line-height:1.25; text-shadow:0 6px 18px rgba(0,0,0,.55);
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .sub{margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; color: rgba(233,233,243,.78); font-size:12px; font-weight:900;}
+    .chip{padding:6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.22); backdrop-filter: blur(8px);}
+    .chip.pink{border-color: rgba(255,64,160,.25)}
+    .chip.blue{border-color: rgba(90,155,255,.25)}
+    .chip.good{border-color: rgba(93,255,154,.25)}
+
+    .empty{
+      margin:30px auto 0;
+      max-width:720px;
+      padding:18px 18px;
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      color: rgba(233,233,243,.88);
+    }
+    .empty h3{margin:0; font-size:18px; font-weight:1000}
+    .empty p{margin:8px 0 0; color: var(--muted); font-weight:800; line-height:1.45}
+
+    /* modals */
+    .modal{position:fixed; inset:0; display:none; place-items:center; background: rgba(0,0,0,.74); backdrop-filter: blur(10px); z-index:50; padding:18px;}
+    .modal.show{display:grid}
+    .modal-card{width:min(980px, 100%); border-radius: 24px; border:1px solid rgba(255,255,255,.12); background: rgba(14,14,22,.82); box-shadow: var(--shadow); overflow:hidden; position:relative;}
+    .close{position:absolute; top:12px; right:12px; width:44px; height:44px; border-radius:14px; display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.18); cursor:pointer; transition:.2s; font-weight:1000;
+    }
+    .close:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.20)}
+    .hero{display:grid; grid-template-columns: 260px 1fr; gap:16px; padding:16px;}
+    @media (max-width:820px){.hero{grid-template-columns:1fr}}
+    .hero .left{border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04);}
+    .hero .left img{width:100%; height:360px; object-fit:cover; display:block}
+    .hero .right h2{margin:0; font-size:22px; font-weight:1000}
+    .desc{margin:10px 0 0; color: rgba(233,233,243,.80); line-height:1.5; font-size:13.8px;}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+    .meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; color: rgba(233,233,243,.78); font-size:12px; font-weight: 900;}
+    .badge{padding:7px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.18);}
+    .player{display:none; border-top:1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.22); padding:14px 16px 16px;}
+
+gafurov's, [05.02.2026 22:49]
+.player.show{display:block}
+    .player iframe{width:100%; height:min(54vh, 520px); border:0; border-radius:18px; background:#000;}
+    .note{margin:10px 0 0; color: rgba(233,233,243,.70); font-size:12px; line-height:1.45}
+
+    /* user */
+    .userbox{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(18,18,28,.55);
+      backdrop-filter: blur(10px);
+      max-width: 360px;
+    }
+    .dot{width:10px; height:10px; border-radius:999px; background: rgba(255,255,255,.35); box-shadow: 0 0 20px rgba(255,64,160,.20);}
+    .username{font-weight:1000; letter-spacing:.02em}
+    .vip-badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,64,160,.35);
+      background: linear-gradient(135deg, rgba(255,64,160,.22), rgba(90,155,255,.18));
+      box-shadow: 0 12px 40px rgba(255,64,160,.18);
+      font-weight:1000; letter-spacing:.12em;
+      text-transform:uppercase; user-select:none;
+    }
+    .vip-badge span{font-family: ui-monospace, Menlo, Consolas, monospace;}
+
+    footer{
+      position:fixed; left:14px; bottom:12px; z-index:5;
+      color: rgba(233,233,243,.58);
+      font-size: 12px; font-weight: 1000;
+      padding:8px 10px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18); backdrop-filter: blur(10px);
+    }
+    .corner{
+      position:fixed; right:14px; bottom:12px; z-index:5;
+      color: rgba(233,233,243,.55);
+      font-size: 11px; font-weight: 1000;
+      padding:8px 10px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18); backdrop-filter: blur(10px);
+      text-transform: uppercase; letter-spacing: .12em;
+    }
+  </style>
+
+  <!-- Firebase Auth (module) -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBxzoLaZh8WVBFN_-t8ro8I1-QoXaKf-2I",
+    authDomain: "gafurov-s-anime.firebaseapp.com",
+    projectId: "gafurov-s-anime",
+    storageBucket: "gafurov-s-anime.firebasestorage.app",
+    messagingSenderId: "622716067905",
+    appId: "1:622716067905:web:e1525449db1f06765426c0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.login = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Вход выполнен ✅");
+  };
+
+  window.signup = async (email, password) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+    alert("Аккаунт создан ✅");
+  };
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      console.log("Logged in:", user.email);
+    }
+  });
+</script>
+</head>
+
+<body>
+  <div class="live-bg"></div>
+  <canvas id="stars"></canvas>
+  <div class="noise"></div>
+
+  <div class="splash" aria-hidden="true">
+    <div class="splash-card">
+      <div class="brand">by gafurov</div>
+      <div class="logo">gafurov's anime</div>
+      <p class="tag"></p>
+    </div>
+  </div>
+
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="title">
+          <div class="mark"></div>
+          <div>
+            <h1>gafurov's anime</h1>
+            <small>Каталог через AniList</small>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="search-wrap">
+            <div class="search">
+              <span>🔎</span>
+              <input id="q" placeholder="Пиши название: Naruto, JJK, AoT..." autocomplete="off"/>
+            </div>
+            <div class="suggest" id="suggest"></div>
+          </div>
+          <div class="pill active" id="tabTrending">Тренды</div>
+          <div class="pill" id="tabPopular">Популярное</div>
+        </div>
+
+        <div class="right">
+          <div class="userbox" id="userbox" style="display:none;">
+            <div class="dot" id="dot"></div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <div>
+                <span class="username" id="uname">User</span>
+                <span id="vip" style="margin-left:8px; display:none;" class="vip-badge"><span>gafurov</span></span>
+              </div>
+              <div style="font-size:12px; color: rgba(233,233,243,.70); font-weight:900;" id="upro">—</div>
+            </div>
+          </div>
+
+          <button class="btn" id="premiumBtn">Premium</button>
+          <button class="btn primary" id="loginBtn">Login</button>
+          <button class="btn bad" id="logoutBtn" style="display:none;">Logout</button>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <div class="hint" id="hint"></div>
+        <div class="stat" id="stat">—</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none;">
+      <h3>Ничего не найдено 😵‍💫</h3>
+      <p>Попробуй: английское название или короче запрос (например “naruto”).</p>
+    </div>
+  </main>
+
+  <!-- anime modal -->
+  <div class="modal" id="modal">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="close" id="closeBtn">✕</div>
+      <div class="hero">
+        <div class="left"><img id="mPoster" alt=""></div>
+        <div class="right">
+          <h2 id="mTitle">—</h2>
+          <div class="meta" id="mMeta"></div>
+          <p class="desc" id="mDesc">—</p>
+
+          <div class="actions">
+            <button class="btn primary" id="watchBtn">▶ Смотреть (трейлер)</button>
+            <button class="btn" id="openAniListBtn">Открыть AniList</button>
+            <button class="btn" id="copyBtn">Скопировать название</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="player" id="player">
+        <iframe id="yt" allowfullscreen></iframe>
+        <p class="note">
+          Здесь только официальные трейлеры/тизеры (YouTube). Premium Demo — для интерфейса и фишек профиля.
+        </p>
+      </div>
+    </div>
+  </div>
+
+gafurov's, [05.02.2026 22:49]
+<!-- premium modal -->
+  <div class="modal" id="pmodal">
+    <div class="modal-card" style="max-width:820px;">
+      <div class="close" id="pclose">✕</div>
+      <div style="padding:16px 16px 0;">
+        <h2 style="margin:0; font-size:22px; font-weight:1000;">Premium (Demo)</h2>
+        <p style="margin:8px 0 0; color: rgba(233,233,243,.78); font-weight:900; line-height:1.45;" id="premiumExplain">
+          Чтобы получить Premium (demo), сначала войди в аккаунт.
+        </p>
+      </div>
+
+      <div style="padding:16px; display:grid; gap:12px;">
+        <div class="empty" style="display:block; margin:0;">
+          <h3 style="margin:0; font-size:16px;">Эксклюзивы Premium (Demo) — 6</h3>
+          <p style="margin-top:8px;">
+            1) Цвет ника (сам выбираешь)<br/>
+            2) VIP бейдж “gafurov”<br/>
+            3) Ultra Search: больше результатов и быстрее подсказки (скоро)<br/>
+            4) My Lists: избранное + статусы (скоро)<br/>
+            5) Profile Card: кастом карточки профиля (скоро)<br/>
+            6) Night Boost: режим “ещё темнее” (скоро)
+          </p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn good" id="activateDemoBtn" disabled>Activate Premium (Demo)</button>
+          <button class="btn bad" id="deactivateDemoBtn" disabled>Disable Premium</button>
+        </div>
+
+        <div class="empty" id="colorBox" style="display:none; margin:0;">
+          <h3 style="margin:0; font-size:16px;">Цвет ника</h3>
+          <p style="margin-top:8px;">Выбери цвет и сохрани. Он останется после F5 на этом устройстве.</p>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap;">
+            <input type="color" id="colorPick" value="#ff40a0" style="width:52px;height:44px;border:none;background:transparent;"/>
+            <button class="btn primary" id="saveColorBtn">Сохранить</button>
+            <span style="color: rgba(233,233,243,.75); font-weight:900; font-size:12px;" id="colorStatus">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- auth modal -->
+  <div class="modal" id="amodal">
+    <div class="modal-card" style="max-width:560px;">
+      <div class="close" id="aclose">✕</div>
+      <div style="padding:16px;">
+        <h2 style="margin:0; font-size:22px; font-weight:1000;">Login / Sign up</h2>
+        <p style="margin:8px 0 0; color: rgba(233,233,243,.78); font-weight:900;">Email + пароль. Premium Demo доступен только после входа.</p>
+
+        <div style="margin-top:14px; display:grid; gap:10px;">
+          <input id="authName" placeholder="Имя (опционально)" style="padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(18,18,28,.55);color:#fff;">
+          <input id="authEmail" placeholder="Email" style="padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(18,18,28,.55);color:#fff;">
+          <input id="authPass" placeholder="Пароль" type="password" style="padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(18,18,28,.55);color:#fff;">
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary" id="signUpBtn">Sign up</button>
+            <button class="btn" id="signInBtn">Login</button>
+          </div>
+
+          <div style="color: rgba(233,233,243,.72); font-weight:900; font-size:12px;" id="authStatus">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© by gafurov • All rights reserved</footer>
+  <div class="corner">live anime vibe</div>
+
+  <script>
+    // ===== Stars canvas (live wallpaper) =====
+    const canvas = document.getElementById("stars");
+    const ctx = canvas.getContext("2d");
+    let w, h, stars, t0;
+
+gafurov's, [05.02.2026 22:49]
+function resize(){
+      w = canvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+      h = canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+      initStars();
+    }
+
+    function rand(min,max){ return Math.random()*(max-min)+min; }
+
+    function initStars(){
+      const count = Math.floor((window.innerWidth * window.innerHeight) / 12000);
+      stars = Array.from({length: Math.max(90, count)}, ()=>({
+        x: rand(0,w), y: rand(0,h),
+        r: rand(0.6, 2.2) * devicePixelRatio,
+        s: rand(0.15, 0.6) * devicePixelRatio,
+        tw: rand(0, Math.PI*2),
+        hue: rand(0,1) < 0.5 ? "255,64,160" : "90,155,255",
+        a: rand(0.20, 0.85)
+      }));
+    }
+
+    function draw(time){
+      const t = time * 0.001;
+      ctx.clearRect(0,0,w,h);
+
+      for(const st of stars){
+        st.tw += 0.02;
+        st.x += st.s * (0.6 + Math.sin(t*0.6 + st.tw)*0.7);
+        st.y += st.s * (0.4 + Math.cos(t*0.5 + st.tw)*0.6);
+
+        if(st.x < -10) st.x = w+10;
+        if(st.x > w+10) st.x = -10;
+        if(st.y < -10) st.y = h+10;
+        if(st.y > h+10) st.y = -10;
+
+        const pulse = 0.35 + 0.65 * (0.5 + 0.5*Math.sin(t*1.3 + st.tw));
+        const alpha = st.a * pulse;
+
+        ctx.beginPath();
+        ctx.fillStyle = rgba(${st.hue}, ${alpha});
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(draw);
+  </script>
+
+  <script>
+    // ===== AniList catalog + autocomplete =====
+    const ANILIST = "https://graphql.anilist.co";
+    const $ = (id)=>document.getElementById(id);
+
+    const grid = $("grid");
+    const empty = $("empty");
+    const q = $("q");
+    const hint = $("hint");
+    const stat = $("stat");
+    const suggest = $("suggest");
+    const tabTrending = $("tabTrending");
+    const tabPopular = $("tabPopular");
+
+    const modal = $("modal");
+    const closeBtn = $("closeBtn");
+    const mPoster = $("mPoster");
+    const mTitle = $("mTitle");
+    const mMeta = $("mMeta");
+    const mDesc = $("mDesc");
+    const watchBtn = $("watchBtn");
+    const openAniListBtn = $("openAniListBtn");
+    const copyBtn = $("copyBtn");
+    const player = $("player");
+    const yt = $("yt");
+
+    const stripHtml = (s="") => s.replace(/<br\s*\/?>/gi,"\n").replace(/<\/?[^>]+(>|$)/g, "").trim();
+    const safe = (s="") => (s||"").replace(/\s+/g," ").trim();
+    const debounce = (fn, ms=350) => { let t=null; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; };
+
+    function badge(text){
+      const d = document.createElement("div");
+      d.className = "badge";
+      d.textContent = text;
+      return d;
+    }
+    function setEmpty(show){ empty.style.display = show ? "block" : "none"; }
+
+    async function gql(query, variables){
+      const r = await fetch(ANILIST, {
+        method:"POST",
+        headers: {"Content-Type":"application/json","Accept":"application/json"},
+        body: JSON.stringify({query, variables})
+      });
+      const j = await r.json();
+      if (j.errors) throw new Error(j.errors[0]?.message || "AniList error");
+      return j.data;
+    }
+
+    let page=1;
+    let sActive=-1;
+    let last=[];
+
+    function renderCards(items){
+      grid.innerHTML = "";
+      setEmpty(items.length === 0);
+
+      items.forEach(a=>{
+        const title = safe(a.title?.romaji  a.title?.english  a.title?.native || "Unknown");
+        const score = a.averageScore ? ${a.averageScore}/100 : "—";
+        const year = a.seasonYear  a.startDate?.year  "—";
+        const fmt = a.format || "—";
+        const eps = a.episodes ? ${a.episodes} ep : "—";
+
+gafurov's, [05.02.2026 22:49]
+const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = 
+          <img class="poster" src="${a.coverImage?.large || ""}" alt="${title}">
+          <div class="fade"></div>
+          <div class="info">
+            <p class="name">${title}</p>
+            <div class="sub">
+              <span class="chip pink">⭐ ${score}</span>
+              <span class="chip blue">${fmt}</span>
+              <span class="chip">${year}</span>
+              <span class="chip good">${eps}</span>
+            </div>
+          </div>
+        ;
+        card.onclick = () => openModal(a);
+        grid.appendChild(card);
+      });
+
+      stat.textContent = ${items.length} тайтлов;
+    }
+
+    async function loadTrending(){
+      hint.textContent = "Тренды ✨ (или начни печатать — будет поиск + подсказки)";
+      tabTrending.classList.add("active");
+      tabPopular.classList.remove("active");
+      page = 1;
+
+      const query = 
+        query($page:Int){
+          Page(page:$page, perPage:24){
+            media(type:ANIME, sort:TRENDING_DESC, isAdult:false){
+              id siteUrl
+              title{romaji english native}
+              coverImage{large}
+              description(asHtml:true)
+              format episodes
+              seasonYear startDate{year}
+              averageScore
+              trailer{id site}
+              genres
+            }
+          }
+        };
+      const data = await gql(query, {page});
+      last = data.Page.media || [];
+      renderCards(last);
+    }
+
+    async function loadPopular(){
+      hint.textContent = "Популярное 🔥 (или начни печатать — будет поиск + подсказки)";
+      tabTrending.classList.remove("active");
+      tabPopular.classList.add("active");
+      page = 1;
+
+      const query = 
+        query($page:Int){
+          Page(page:$page, perPage:24){
+            media(type:ANIME, sort:POPULARITY_DESC, isAdult:false){
+              id siteUrl
+              title{romaji english native}
+              coverImage{large}
+              description(asHtml:true)
+              format episodes
+              seasonYear startDate{year}
+              averageScore
+              trailer{id site}
+              genres
+            }
+          }
+        };
+      const data = await gql(query, {page});
+      last = data.Page.media || [];
+      renderCards(last);
+    }
+
+    async function search(term){
+      hint.textContent = Поиск: “${term}”;
+      page = 1;
+
+      const query = 
+        query($page:Int,$search:String){
+          Page(page:$page, perPage:24){
+            media(type:ANIME, search:$search, sort:POPULARITY_DESC, isAdult:false){
+              id siteUrl
+              title{romaji english native}
+              coverImage{large}
+              description(asHtml:true)
+              format episodes
+              seasonYear startDate{year}
+              averageScore
+              trailer{id site}
+              genres
+            }
+          }
+        };
+      const data = await gql(query, {page, search: term});
+      last = data.Page.media || [];
+      renderCards(last);
+    }
+
+    async function suggestQuery(term){
+      if(!term || term.length < 2){
+        suggest.classList.remove("show");
+        suggest.innerHTML = "";
+        sActive = -1;
+        return;
+      }
+
+      const query = 
+        query($search:String){
+          Page(page:1, perPage:8){
+            media(type:ANIME, search:$search, sort:POPULARITY_DESC, isAdult:false){
+              id
+              title{romaji english native}
+              coverImage{large}
+              seasonYear
+              format
+            }
+          }
+        };
+      try{
+        const data = await gql(query, {search: term});
+        const items = data.Page.media || [];
+        if(items.length === 0){
+          suggest.classList.remove("show");
+          suggest.innerHTML = "";
+          sActive = -1;
+          return;
+        }
+
+gafurov's, [05.02.2026 22:49]
+suggest.innerHTML = "";
+        items.forEach(a=>{
+          const title = safe(a.title?.romaji  a.title?.english  a.title?.native || "Unknown");
+          const year = a.seasonYear || "—";
+          const fmt  = a.format || "—";
+          const row  = document.createElement("div");
+          row.className = "suggest-item";
+          row.innerHTML = 
+            <img src="${a.coverImage?.large || ""}" alt="">
+            <div>
+              <div class="s-title">${title}</div>
+              <div class="s-sub">${fmt} • ${year}</div>
+            </div>
+          ;
+          row.onclick = () => {
+            q.value = title;
+            suggest.classList.remove("show");
+            suggest.innerHTML = "";
+            sActive = -1;
+            search(title);
+          };
+          suggest.appendChild(row);
+        });
+
+        suggest.classList.add("show");
+        sActive = -1;
+      }catch{
+        suggest.classList.remove("show");
+        suggest.innerHTML = "";
+        sActive = -1;
+      }
+    }
+
+    const debSuggest = debounce(suggestQuery, 220);
+    const debSearch  = debounce((term)=>search(term), 480);
+
+    q.addEventListener("input", ()=>{
+      const term = q.value.trim();
+      if(!term){
+        suggest.classList.remove("show");
+        suggest.innerHTML = "";
+        sActive = -1;
+        if(tabPopular.classList.contains("active")) loadPopular();
+        else loadTrending();
+        return;
+      }
+      debSuggest(term);
+      debSearch(term);
+    });
+
+    q.addEventListener("keydown", (e)=>{
+      const items = [...suggest.querySelectorAll(".suggest-item")];
+      if(!suggest.classList.contains("show") || items.length === 0) return;
+
+      if(e.key === "ArrowDown"){ e.preventDefault(); sActive = Math.min(sActive + 1, items.length - 1); }
+      else if(e.key === "ArrowUp"){ e.preventDefault(); sActive = Math.max(sActive - 1, 0); }
+      else if(e.key === "Enter"){ if(sActive >= 0 && items[sActive]){ e.preventDefault(); items[sActive].click(); } }
+      else if(e.key === "Escape"){ suggest.classList.remove("show"); suggest.innerHTML = ""; sActive = -1; }
+
+      items.forEach((el, idx)=>el.classList.toggle("active", idx === sActive));
+    });
+
+    window.addEventListener("click", (e)=>{
+      if(!e.target.closest(".search-wrap")){
+        suggest.classList.remove("show");
+        suggest.innerHTML = "";
+        sActive = -1;
+      }
+    });
+
+    function openModal(a){
+      const title = safe(a.title?.romaji  a.title?.english  a.title?.native || "Unknown");
+      mTitle.textContent = title;
+      mPoster.src = a.coverImage?.large || "";
+      mPoster.alt = title;
+
+      const desc = stripHtml(a.description || "Описание пока пустое.");
+      mDesc.textContent = desc.length > 560 ? desc.slice(0,560) + "…" : desc;
+
+      mMeta.innerHTML = "";
+      mMeta.appendChild(badge(a.averageScore ? ⭐ ${a.averageScore}/100 : "⭐ —"));
+      mMeta.appendChild(badge(📅 ${a.seasonYear || a.startDate?.year || "—"}));
+      mMeta.appendChild(badge(🎞 ${a.format || "—"}));
+      mMeta.appendChild(badge(🧩 ${a.episodes ? a.episodes + " эп." : "—"}));
+      (a.genres || []).slice(0,4).forEach(g=> mMeta.appendChild(badge(#${g})));
+
+      player.classList.remove("show");
+      yt.src = "";
+
+      const tr = a.trailer;
+      const hasYt = tr && (tr.site || "").toLowerCase() === "youtube" && tr.id;
+      watchBtn.disabled = !hasYt;
+      watchBtn.textContent = hasYt ? "▶ Смотреть (трейлер)" : "Трейлер недоступен";
+
+      openAniListBtn.onclick = () => window.open(a.siteUrl, "_blank");
+      copyBtn.onclick = async () => {
+        try{
+          await navigator.clipboard.writeText(title);
+          copyBtn.textContent = "Скопировано ✅";
+          setTimeout(()=>copyBtn.textContent="Скопировать название", 900);
+        }catch{
+          alert("Не получилось скопировать 🙂");
+        }
+      };
+
+gafurov's, [05.02.2026 22:49]
+watchBtn.onclick = () => {
+        if(!hasYt) return;
+        yt.src = https://www.youtube.com/embed/${tr.id}?autoplay=1&rel=0;
+        player.classList.add("show");
+        player.scrollIntoView({behavior:"smooth", block:"start"});
+      };
+
+      modal.classList.add("show");
+    }
+
+    function closeModal(){
+      modal.classList.remove("show");
+      player.classList.remove("show");
+      yt.src = "";
+    }
+    closeBtn.onclick = closeModal;
+    modal.addEventListener("click", (e)=>{ if(e.target===modal) closeModal(); });
+    window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
+
+    tabTrending.onclick = () => { q.value=""; loadTrending(); };
+    tabPopular.onclick  = () => { q.value=""; loadPopular(); };
+
+    loadTrending();
+  </script>
+</body>
+</html>
